@@ -9,6 +9,9 @@ let mediaRecorder;
 let audioChunks = [];
 let isRecording = false;
 
+// Webhook URL из n8n - ЗАМЕНИТЕ НА ВАШ URL
+const N8N_WEBHOOK_URL = 'https://yupppqw.app.n8n.cloud/webhook/miniapp';
+
 // Функция отправки текстового сообщения
 async function sendMessage() {
     const input = document.getElementById('messageInput');
@@ -24,53 +27,44 @@ async function sendMessage() {
     showLoading(true);
     
     try {
-        // Отправляем сообщение в ваш n8n workflow
-        const response = await sendToBot(message);
+        // Отправляем сообщение в n8n webhook
+        const response = await sendToN8N(message);
         
         // Добавляем ответ бота
         addMessage(response, 'bot');
         
     } catch (error) {
+        console.error('Error sending message:', error);
         addMessage('⚠️ Произошла ошибка. Попробуйте еще раз.', 'bot');
-        console.error('Error:', error);
     } finally {
         showLoading(false);
     }
 }
 
-// Функция отправки на бэкенд (n8n)
-async function sendToBot(message) {
-    // ВРЕМЕННО: заглушка для тестирования
-    // Замените на ваш n8n webhook URL
-    await new Promise(resolve => setTimeout(resolve, 1000));
+// Функция отправки в n8n webhook
+async function sendToN8N(message) {
+    const requestBody = {
+        message: message,
+        userId: tg.initDataUnsafe.user?.id || 'mini-app-user',
+        platform: 'telegram_mini_app'
+    };
     
-    const responses = [
-        `Отличный вопрос! "${message}" - это интересная тема для обсуждения.`,
-        `Спасибо за сообщение! По поводу "${message}" я могу рассказать подробнее.`,
-        `Я получил ваш вопрос: "${message}". Давайте разберем его детально!`,
-        `Интересный запрос! "${message}" - давайте обсудим это более подробно.`
-    ];
-    
-    return responses[Math.floor(Math.random() * responses.length)];
-    
-    /*
-    // РЕАЛЬНАЯ РЕАЛИЗАЦИЯ (раскомментируйте когда настроите n8n):
-    const response = await fetch('YOUR_N8N_WEBHOOK_URL_HERE', {
+    const response = await fetch(N8N_WEBHOOK_URL, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-            message: message,
-            chatId: tg.initDataUnsafe.user?.id || 'mini-app-user',
-            platform: 'telegram_mini_app'
-        })
+        body: JSON.stringify(requestBody)
     });
     
-    if (!response.ok) throw new Error('Network error');
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
     const data = await response.json();
-    return data.response || data.text || data.message;
-    */
+    
+    // Обрабатываем разные форматы ответа от n8n
+    return data.response || data.text || data.message || data.output || 'Ответ получен';
 }
 
 // Функция начала записи голоса
@@ -102,7 +96,7 @@ async function startVoiceRecording() {
         mediaRecorder.onstop = processAudioRecording;
         
         // Начинаем запись
-        mediaRecorder.start(100); // Собираем данные каждые 100мс
+        mediaRecorder.start(100);
         isRecording = true;
         
         // Показываем интерфейс записи
@@ -148,29 +142,12 @@ async function processAudioRecording() {
             throw new Error('No audio recorded');
         }
         
-        // Создаем Blob из записанных данных
-        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+        // В Mini App отправляем текстовое сообщение о голосовом вводе
+        const voiceMessageText = "🎤 [Голосовое сообщение]";
         
-        // ВРЕМЕННО: заглушка для тестирования
-        // В реальной версии здесь будет отправка на сервер для распознавания
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        
-        // Имитация распознанного текста
-        const sampleTexts = [
-            "Привет! Это тестовое голосовое сообщение из мини-приложения.",
-            "Сегодня прекрасная погода для разработки новых функций!",
-            "Голосовые сообщения очень удобны для быстрого общения.",
-            "Это демонстрация работы голосового ввода в Telegram Mini App."
-        ];
-        
-        const recognizedText = sampleTexts[Math.floor(Math.random() * sampleTexts.length)];
-        
-        // Добавляем распознанный текст в чат как сообщение пользователя
-        addMessage(`🎤 ${recognizedText}`, 'user');
-        
-        // Отправляем распознанный текст в бот
-        const botResponse = await sendToBot(recognizedText);
-        addMessage(botResponse, 'bot');
+        // Отправляем специальное сообщение о голосовом вводе
+        const response = await sendToN8N(voiceMessageText);
+        addMessage(response, 'bot');
         
     } catch (error) {
         console.error('Error processing audio:', error);
@@ -179,23 +156,6 @@ async function processAudioRecording() {
         showLoading(false);
         audioChunks = [];
     }
-}
-
-// РЕАЛЬНАЯ ФУНКЦИЯ для отправки аудио на сервер (когда настроите n8n)
-async function sendAudioToServer(audioBlob) {
-    const formData = new FormData();
-    formData.append('audio', audioBlob, 'voice-message.webm');
-    formData.append('chatId', tg.initDataUnsafe.user?.id || 'mini-app-user');
-    formData.append('platform', 'telegram_mini_app');
-    
-    const response = await fetch('YOUR_N8N_VOICE_WEBHOOK_URL', {
-        method: 'POST',
-        body: formData
-    });
-    
-    if (!response.ok) throw new Error('Audio upload failed');
-    const data = await response.json();
-    return data.text; // Распознанный текст
 }
 
 // Добавление сообщения в чат
@@ -245,7 +205,7 @@ document.getElementById('voiceRecording').addEventListener('click', function(e) 
 
 // Инициализация при загрузке
 document.addEventListener('DOMContentLoaded', function() {
-    addMessage('👋 Привет! Я ваш AI ассистент. Задайте вопрос текстом или нажмите 🎤 для голосового сообщения!', 'bot');
+    addMessage('👋 Привет! Я ваш AI ассистент. Теперь я интегрирован с n8n и использую того же DeepSeek AI, что и в основном боте!', 'bot');
     
     // Проверяем поддержку MediaRecorder
     if (!navigator.mediaDevices || !window.MediaRecorder) {
@@ -254,3 +214,28 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('messageInput').placeholder = 'Введите сообщение...';
     }
 });
+
+// Функция для отладки - проверка соединения с n8n
+async function testN8NConnection() {
+    try {
+        const testResponse = await fetch(N8N_WEBHOOK_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                message: 'test',
+                userId: 'test-user',
+                platform: 'test'
+            })
+        });
+        console.log('N8N Connection Test:', testResponse.status);
+        return testResponse.ok;
+    } catch (error) {
+        console.error('N8N Connection Test Failed:', error);
+        return false;
+    }
+}
+
+// Запускаем тест при загрузке (опционально)
+// testN8NConnection();

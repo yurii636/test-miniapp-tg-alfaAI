@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Assistant Bot</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🤖 AI Assistant</h1>
+            <p>Задавайте вопросы текстом или голосом</p>
+        </header>
+        
+        <div id="chat" class="chat-container">
+            <!-- Сообщения будут здесь -->
+        </div>
+        
+        <div class="input-container">
+            <input type="text" id="messageInput" placeholder="Введите сообщение..." maxlength="4000">
+            <button onclick="sendMessage()">📤</button>
+        </div>
+        
+        <div class="loading" id="loading" style="display: none;">
+            <div class="typing-indicator">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

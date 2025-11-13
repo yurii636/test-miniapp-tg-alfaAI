@@ -19,8 +19,9 @@
         </div>
         
         <div class="input-container">
-            <input type="text" id="messageInput" placeholder="Введите сообщение..." maxlength="4000">
-            <button onclick="sendMessage()">📤</button>
+            <button onclick="startVoiceRecording()" class="voice-btn" title="Голосовое сообщение">🎤</button>
+            <input type="text" id="messageInput" placeholder="Введите сообщение или нажмите 🎤" maxlength="4000">
+            <button onclick="sendMessage()" title="Отправить">📤</button>
         </div>
         
         <div class="loading" id="loading" style="display: none;">
@@ -28,6 +29,14 @@
                 <span></span>
                 <span></span>
                 <span></span>
+            </div>
+        </div>
+        
+        <div id="voiceRecording" class="voice-recording" style="display: none;">
+            <div class="recording-indicator">
+                <div class="pulse"></div>
+                <p>Запись... Говорите сейчас</p>
+                <button onclick="stopVoiceRecording()" class="stop-btn">⏹️ Стоп</button>
             </div>
         </div>
     </div>

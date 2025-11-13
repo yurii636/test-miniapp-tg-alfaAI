@@ -72,6 +72,7 @@ header p {
     padding: 15px;
     background: white;
     border-top: 1px solid #e0e0e0;
+    align-items: center;
 }
 
 #messageInput {
@@ -81,6 +82,7 @@ header p {
     border-radius: 25px;
     outline: none;
     font-size: 16px;
+    margin: 0 10px;
 }
 
 #messageInput:focus {
@@ -94,13 +96,24 @@ button {
     border-radius: 50%;
     width: 44px;
     height: 44px;
-    margin-left: 10px;
     cursor: pointer;
     font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 button:hover {
     background: #0056cc;
+}
+
+.voice-btn {
+    background: #34c759;
+}
+
+.voice-btn:active {
+    background: #30b150;
+    transform: scale(0.95);
 }
 
 .loading {
@@ -133,6 +146,62 @@ button:hover {
     animation-delay: 0.3s;
 }
 
+.voice-recording {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.recording-indicator {
+    background: white;
+    padding: 30px;
+    border-radius: 20px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.pulse {
+    width: 60px;
+    height: 60px;
+    background: #ff3b30;
+    border-radius: 50%;
+    margin: 0 auto 20px;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(0.95); opacity: 0.7; }
+    50% { transform: scale(1.1); opacity: 1; }
+    100% { transform: scale(0.95); opacity: 0.7; }
+}
+
+.stop-btn {
+    background: #ff3b30;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-top: 15px;
+}
+
+.voice-message {
+    background: #34c759;
+    color: white;
+    padding: 8px 15px;
+    border-radius: 15px;
+    margin: 5px 0;
+    display: inline-block;
+}
+
 @keyframes bounce {
     0%, 60%, 100% { transform: translateY(0); }
     30% { transform: translateY(-4px); }
@@ -141,4 +210,27 @@ button:hover {
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
+}
+
+/* Адаптивность для мобильных */
+@media (max-width: 480px) {
+    body {
+        padding: 10px;
+    }
+    
+    .container {
+        border-radius: 15px;
+    }
+    
+    .chat-container {
+        height: 350px;
+    }
+    
+    header {
+        padding: 15px;
+    }
+    
+    header h1 {
+        font-size: 20px;
+    }
 }
